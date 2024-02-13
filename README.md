@@ -7,14 +7,14 @@ HPCS_LBP
 
 !sudo apt install libopencv-dev python3-opencv
 
-#May be Required
+## May be Required
 !apt-get install -y mpich
 
 !apt-get install -y openmpi-bin openmpi-doc openmpi-dev
 
 !apt-get install -y g++
 
-##Run command
+## Run command
 #COMMAND RUN SEQUENTIAL CODE
 !g++ Sequential_OPENCV.cpp -o app `pkg-config --cflags --libs opencv4` && ./app
 
