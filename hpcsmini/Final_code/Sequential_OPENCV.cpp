@@ -72,7 +72,7 @@ int Texton_weight(int fx, int fy, int lx, int ly) {
 int main() {
   int i, j;
 
-  Mat image = imread("sample/1000x1000.png");
+  Mat image = imread("image_sample/1000x1000.png");
   if (image.empty()) {
     cerr << "Error: Couldn't load input image." << endl;
     return -1;
