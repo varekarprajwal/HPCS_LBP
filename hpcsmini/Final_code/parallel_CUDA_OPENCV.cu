@@ -124,7 +124,7 @@ int main() {
   int t_m_r,t_m_c;
   int i_m_r,i_m_c;
   int *h_img_r = new int[2000*2000];
-  Mat image = imread("img1.jpg");
+  Mat image = imread("512x512.png");
 
   if (image.empty()) {
     cerr << "Error: Couldn't load input image." << endl;

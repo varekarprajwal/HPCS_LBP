@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <ctime>
+#include <vector>
 #include <opencv4/opencv2/core.hpp>
 #include <opencv4/opencv2/highgui.hpp>
 #include <opencv4/opencv2/opencv.hpp>
@@ -14,26 +15,20 @@ int wgt[3][3] = {
     {32, 64, 128}};
 
 template <typename T>
-T **Create_image(int &r, int &c)
+std::vector<std::vector<T>> Create_image(int r, int c)
 {
-    T **temp = new T *[r];
-
-    for (int i = 0; i < r; i++)
-    {
-        temp[i] = new T[c];
-    }
-    return temp;
+  // Create a 2D vector with r rows and c columns
+  return std::vector<std::vector<T>>(r, std::vector<T>(c));
 }
-
 template <typename T>
-void Print_image(int &r, int &c, T **temp)
+void Print_image(int &r, int &c, std::vector<std::vector<T>> &temp)
 {
-    for (int i = 0; i < r; i++)
-    {
-        for (int j = 0; j < c; j++)
-            cout << setw(3) << temp[i][j] << " ";
-        printf("\n");
-    }
+  for (int i = 0; i < r; i++)
+  {
+    for (int j = 0; j < c; j++)
+      cout << setw(3) << temp[i][j] << " ";
+    printf("\n");
+  }
 }
 
 double getCurrentTime()
@@ -63,7 +58,7 @@ int casecheck(int a, int b, int c, int d)
     return 0;
 }
 
-int Texton_weight(int fx, int fy, int lx, int ly, int **txt_img)
+int Texton_weight(int fx, int fy, int lx, int ly, std::vector<std::vector<int>> &txt_img)
 {
   int k = 0, l = 0;
 
@@ -106,35 +101,28 @@ int main(int argc, char *argv[])
   }
   Mat hsv_image;
   cvtColor(image, hsv_image, COLOR_BGR2HSV);
+
+  vector<Mat> hsvChannels;
+  split(hsv_image, hsvChannels);
+  Mat img = hsvChannels[2];
+
   int r = hsv_image.rows, c = hsv_image.cols;
   int m_r = hsv_image.rows / 2, m_c = hsv_image.cols / 2;
-  int **img = Create_image<int>(r, c);
-  int **txt_img = Create_image<int>(m_r, m_c);
-  int **Main_res = Create_image<int>(m_r, m_c);
 
-  for (i = 0; i < r; i++)
-  {
-    for (j = 0; j < c; j++)
-    {
-      Vec3b hsv_pixel = hsv_image.at<Vec3b>(i, j);
-      img[i][j] = hsv_pixel[2];
-    }
-  }
+  vector<vector<int>> txt_img = Create_image<int>(m_r, m_c);
+  vector<vector<int>> Main_res = Create_image<int>(m_r, m_c);
 
-  // printf("____________________________\n");
-  // printf("\nHSV image Value\n");
-  // printf("____________________________\n\n");
-
-  // Print_image(r, c, img);
 
   int k = 0, l = 0;
   double startTime1 = getCurrentTime();
-  for (i = 0; i < r; i = i + 2)
+  for (i = 0; i < r; i += 2)
   {
-    for (j = 0; j < c; j = j + 2)
+    for (j = 0; j < c; j += 2)
     {
-      int a, b, c, d;
-      a = img[i][j], b = img[i][j + 1], c = img[i + 1][j], d = img[i + 1][j + 1];
+      int a = img.at<uint8_t>(i, j);
+      int b = img.at<uint8_t>(i, j + 1);
+      int c = img.at<uint8_t>(i + 1, j);
+      int d = img.at<uint8_t>(i + 1, j + 1);
       int rs = casecheck(a, b, c, d);
       txt_img[k][l] = rs;
       l++;
@@ -142,20 +130,11 @@ int main(int argc, char *argv[])
     l = 0;
     k++;
   }
+
   double endTime1 = getCurrentTime();
   double totalTime1 = endTime1 - startTime1;
 
-  delete img;
-
-  // printf("____________________________\n");
-  // printf("\nTexton image\n");
-  // printf("____________________________\n\n");
-
-  // Print_image(m_r, m_c, txt_img);
-
-  // printf("____________________________\n");
-  // printf("\nTexton Weight image\n");
-  // printf("____________________________\n\n");
+  img.release();
 
   double startTime2 = getCurrentTime();
   for (i = 0; i < m_r; i++)
@@ -172,7 +151,7 @@ int main(int argc, char *argv[])
       }
     }
   }
-  // Print_image(m_r, m_c, Main_res);
+  //Print_image(m_r, m_c, Main_res);
 
   double endTime2 = getCurrentTime();
   double totalTime2 = endTime2 - startTime2;
@@ -181,9 +160,6 @@ int main(int argc, char *argv[])
   printf("Elapsed time for texton : %f mili seconds\n", totalTime1);
   printf("Elapsed time for LTxXORp: %f mili seconds\n", totalTime2);
   printf("Elapsed time: %f mili seconds\n", totalTime1 + totalTime2);
-
-  delete txt_img;
-  delete Main_res;
 
   return 0;
 }

@@ -57,7 +57,7 @@ int main( int argc, char* argv[]) {
 
     
     if (rank == 0){
-        Mat image = imread("sample/1000x1000.png");
+        Mat image = imread("image_sample/1000x1000.png");
         if (image.empty()) {
             cerr << "Error: Couldn't load input image." << endl;
             return -1;
