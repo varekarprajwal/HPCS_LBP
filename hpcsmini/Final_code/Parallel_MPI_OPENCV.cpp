@@ -1,291 +1,208 @@
-#include <stdio.h>
 #include <iostream>
-#include <time.h>
+#include <vector>
+#include <numeric>
+#include <ctime>
 #include <mpi.h>
-#include <opencv4/opencv2/core.hpp>
-#include <opencv4/opencv2/highgui.hpp>
 #include <opencv4/opencv2/opencv.hpp>
-
 
 using namespace cv;
 using namespace std;
 
-double getCurrentTime()
-{
-    struct timespec currentTime;
-    clock_gettime(CLOCK_MONOTONIC, &currentTime);
-    return (double)currentTime.tv_sec * 1000.0 + (double)currentTime.tv_nsec / 1000000.0;
+// --- HELPER FUNCTION TO PRINT A CV::MAT ---
+void print_matrix(const Mat& mat_to_print, const string& name) {
+    if (mat_to_print.empty()) {
+        cout << "\n--- " << name << " is empty ---" << endl;
+        return;
+    }
+    cout << "\n--- " << name << " (" << mat_to_print.rows << "x" << mat_to_print.cols << ") ---" << endl;
+    for (int i = 0; i < mat_to_print.rows; i++) {
+        for (int j = 0; j < mat_to_print.cols; j++) {
+            // Use (int) to print the numerical value of the uchar, not the character
+            printf("%4d", (int)mat_to_print.at<uchar>(i, j));
+        }
+        printf("\n");
+    }
+    cout << "----------------------------------------" << endl;
 }
 
-int casecheck(int a, int b, int c, int d) {
-   if (a == b && b == c && c == d && d == a)
-        return 7;
-    else if (a == b)
-        return 1;
-    else if (b == d)
-        return 2;
-    else if (c == d)
-        return 3;
-    else if (a == c)
-        return 4;
-    else if (a == d)
-        return 5;
-    else if (c == b)
-        return 6;
-    else
-        return 0;
+// Same casecheck function, but it now returns a uchar (1 byte)
+uchar casecheck(uchar a, uchar b, uchar c, uchar d) {
+    if (a == b && b == c && c == d) return 7;
+    if (a == b) return 1;
+    if (b == d) return 2;
+    if (c == d) return 3;
+    if (a == c) return 4;
+    if (a == d) return 5;
+    if (c == b) return 6;
+    return 0;
 }
-int main( int argc, char* argv[]) {
 
+int main(int argc, char* argv[]) {
     MPI_Init(&argc, &argv);
-    int size,rank;
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    int rank, world_size;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Status sta;
-    
-    int i, j ,root_rank=0;
-    int t_m_r,t_m_c,i_m_r,i_m_c;
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
-    int rank_offset[size]={0},s_rank_offset[size]={0},rank_offset1[size]={0},text_offset[size]={0};
-    int *img_r = new int[2000*2000];
+    if (rank == 0 && argc < 2) {
+        cerr << "Usage: mpirun -np <N> " << argv[0] << " <image_path>" << endl;
+        MPI_Abort(MPI_COMM_WORLD, 1);
+        return -1;
+    }
 
-    int counts[size]={0},displacements[size]={0};
-    int temp_displacements=0,ofset=1,ofset_r=0;
-    int t_counts[size]={0},t_displacements[size]={0},tt_displacements[size]={0},et_counts[size]={0},et_displacements[size]={0};
-    
-    printf("\nGPU HARDWARE ACTIVATED %d of %d\n",rank,size);
+    Mat v_channel_full;
+    int full_img_rows = 0, full_img_cols = 0;
+    int texton_rows = 0, texton_cols = 0;
 
-    
-    if (rank == 0){
-        Mat image = imread("image_sample/1000x1000.png");
+    // == 1. Root Process: Load Image and Broadcast Dimensions ==
+    if (rank == 0) {
+        Mat image = imread(argv[1], IMREAD_COLOR);
         if (image.empty()) {
             cerr << "Error: Couldn't load input image." << endl;
+            MPI_Abort(MPI_COMM_WORLD, 1);
             return -1;
         }
+
         Mat hsv_image;
         cvtColor(image, hsv_image, COLOR_BGR2HSV);
-        i_m_r = hsv_image.rows ;
-        i_m_c = hsv_image.cols ;
-        t_m_r = hsv_image.rows / 2;
-        t_m_c = hsv_image.cols / 2;
-        
-        int k=0;
-        for (i = 0; i < hsv_image.rows; i++) {
-            for (j = 0; j < hsv_image.cols; j++) {
-                Vec3b hsv_pixel = hsv_image.at<Vec3b>(i, j);
-                int value = hsv_pixel[2];
-                img_r[k]=value;
-                //printf("%3d ", img_r[k]);
-                k++;   
-            }
-        //printf("\n");
-        }
+        vector<Mat> hsv_planes;
+        split(hsv_image, hsv_planes);
+        v_channel_full = hsv_planes[2];
 
+        full_img_rows = v_channel_full.rows;
+        full_img_cols = v_channel_full.cols;
+        texton_rows = full_img_rows / 2;
+        texton_cols = full_img_cols / 2;
     }
-    // SENDING THE DATA
-    MPI_Bcast(&i_m_r,1,MPI_INT,0,MPI_COMM_WORLD);
-    MPI_Bcast(&i_m_c,1,MPI_INT,0,MPI_COMM_WORLD);
-    MPI_Bcast(&t_m_r,1,MPI_INT,0,MPI_COMM_WORLD);
-    MPI_Bcast(&t_m_c,1,MPI_INT,0,MPI_COMM_WORLD);
 
-    int *Final =new int[(t_m_c-2) * (t_m_r-2)];
-    Final[(t_m_c-2) * (t_m_r-2)] = {0};
-    int img_s[i_m_c*i_m_r];
-    int txt_simg[t_m_r][t_m_c] = {0};
-    int *my_texton =new int[t_m_c*t_m_r];
-    int *my_r_texton =new int[t_m_c*t_m_r];
-    int *txt_img =new int[t_m_c*t_m_r];
-    txt_img[t_m_c*t_m_r]={0};
-    int *Main_res =new int[t_m_c*t_m_r];
-    Main_res[t_m_c*t_m_r]={0};
+    // Broadcast essential dimensions to all processes
+    MPI_Bcast(&full_img_rows, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&full_img_cols, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&texton_rows, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&texton_cols, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-
-    for (i=0;i<t_m_c;i++){
-        if (i!=0 && i%size==0)
-            ofset++;
-        rank_offset[i%size]=ofset;
-        //printf("%d form rank %d coint %d\n", rank_offset[i],rank,i);
-
-    }
+    // == 2. Distribute V-Channel Image Data ==
+    int base_rows_per_proc = (full_img_rows / 2 / world_size) * 2;
     
-    for (i=0;i<size;i++){
-        counts[i]=(2*i_m_c)*rank_offset[i];
-        displacements[i]=temp_displacements;
-        temp_displacements+=(2*i_m_c)*rank_offset[i];
-        //printf("vale  rank %d T-count %d T-diaplacemt %d Rank offset%d \n",rank ,counts[i],displacements[i],rank_offset[i]);
-    }
-    temp_displacements = 0;
-    for (i=0;i<size;i++){
-        t_counts[i]=(t_m_c)*rank_offset[i];
-        t_displacements[i]=temp_displacements;
-        temp_displacements+=(t_m_c)*rank_offset[i];
-        //printf("vale  rank %d T-count %d T-diaplacemt %d Rank offset%d \n",rank ,t_counts[i],t_displacements[i],rank_offset[i]);
-    }
+    vector<int> send_counts(world_size);
+    vector<int> displacements(world_size);
     
-    
-    MPI_Scatter(&rank_offset, 1, MPI_INT,&ofset_r, 1,MPI_INT,0, MPI_COMM_WORLD);
-    MPI_Scatterv(img_r, counts, displacements, MPI_INT, &img_s,counts[rank], MPI_INT, 0, MPI_COMM_WORLD);
-
-    /*for (i = 0; i < 2*i_m_c*ofset_r; i++)
-        printf("%d form rank %d coint %d\n",img_s[i],rank,i);*/
-    int k=0,r=0,skip=0;
-    double startTime1 = getCurrentTime();
-        for (i = 0; i < (2*i_m_c*ofset_r);) {
-            int a, b, c, d;
-            a = img_s[i], b = img_s[i + 1], c = img_s[i_m_c+i], d = img_s[i_m_c+i+1];
-            int rs = casecheck(a, b, c, d);
-            my_texton[r]=rs;
-            //printf("%d at vale and pos %d    rank %d\n", my_texton[r],r, rank);
-            r++;
-            k+=2;
-            if (k%i_m_c==0)
-                i+=i_m_c+2;
-            else
-                i+=2;
-
-            skip++;
-        } 
-        double endTime1 = getCurrentTime();
-        //printf("vale  rank %d T-count %d T-diaplacemt %d Rank offset%d \n",rank ,t_counts[rank],t_displacements[rank],rank_offset[rank]);
-        MPI_Gatherv(my_texton, t_counts[rank], MPI_INT, my_r_texton, t_counts, t_displacements, MPI_INT, root_rank, MPI_COMM_WORLD);
-        
-    if (rank == 0){
-
-    //printf("___________________\n");
-    //printf("\nTexton image\n \n");
-
-        for (i = 0; i < t_m_r; i++) {
-            for (j = 0; j < t_m_c; j++) {
-                txt_simg[i][j]=my_r_texton[i*t_m_c+j];
-                //printf("%2d  ", txt_simg[i][j]);
-        
-            }
-            //printf("\n");
+    if (rank == 0) {
+        int current_displacement = 0;
+        for (int i = 0; i < world_size; ++i) {
+            int rows_to_send = (i < world_size - 1) ? base_rows_per_proc : (full_img_rows - i * base_rows_per_proc);
+            send_counts[i] = rows_to_send * full_img_cols;
+            displacements[i] = current_displacement;
+            current_displacement += send_counts[i];
         }
     }
-
-    ofset=0;
-    for (i=0;i<t_m_r-2;i++){
-        if (i!=0 && i%size==0)
-            ofset++;
-        text_offset[i%size]=ofset;
-        //printf("%d form rank %d coint\n", text_offset[i%size],rank);
-    }
-
-    int tt_counts[size]={0};
-    for (i=0;i<size;i++){
-        tt_counts[i]=t_m_r*(3+text_offset[i]);
-    }
-
-    temp_displacements = 0;
-    for (i=0;i<size;i++){
-        counts[i]=(t_m_c)*text_offset[i];
-        tt_displacements[i]= temp_displacements;
-        temp_displacements += t_m_c + counts[i];   
-        //printf("vale  rank %d size count %d T-count %d T-diaplacemt %d Rank offset%d \n",rank ,tt_counts[i],counts[i],tt_displacements[i],text_offset[i]);
-    }
-
-
     
-    MPI_Bcast(&text_offset[size],size,MPI_INT,0,MPI_COMM_WORLD);
-    MPI_Scatterv(txt_simg, tt_counts, tt_displacements, MPI_INT, txt_img, tt_counts[rank], MPI_INT, 0, MPI_COMM_WORLD);
-    //printf("Txt vale  rank %d T-count %d T-diaplacemt %d Rank offset%d \n",rank ,tt_counts[rank],tt_displacements[rank],text_offset[rank]);
+    MPI_Bcast(send_counts.data(), world_size, MPI_INT, 0, MPI_COMM_WORLD);
+    int local_v_rows = send_counts[rank] / full_img_cols;
+    Mat local_v_channel(local_v_rows, full_img_cols, CV_8UC1);
 
+    MPI_Scatterv(v_channel_full.data, send_counts.data(), displacements.data(), MPI_UNSIGNED_CHAR,
+                 local_v_channel.data, send_counts[rank], MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+
+    // == 3. Parallel Texton Calculation ==
+    double startTime1 = MPI_Wtime();
+    int local_texton_rows = local_v_rows / 2;
+    Mat local_texton(local_texton_rows, texton_cols, CV_8UC1);
+
+    for (int i = 0; i < local_texton_rows; ++i) {
+        const uchar* p_src1 = local_v_channel.ptr<uchar>(i * 2);
+        const uchar* p_src2 = local_v_channel.ptr<uchar>(i * 2 + 1);
+        uchar* p_dest = local_texton.ptr<uchar>(i);
+        for (int j = 0; j < texton_cols; ++j) {
+            p_dest[j] = casecheck(p_src1[j * 2], p_src1[j * 2 + 1], p_src2[j * 2], p_src2[j * 2 + 1]);
+        }
+    }
+    double endTime1 = MPI_Wtime();
+
+    // == 4. Halo Exchange for LTxXORp ==
+    Mat local_texton_with_halos(local_texton_rows + 2, texton_cols, CV_8UC1);
+    local_texton.copyTo(local_texton_with_halos(Rect(0, 1, texton_cols, local_texton_rows)));
+
+    int prev_rank = (rank == 0) ? MPI_PROC_NULL : rank - 1;
+    int next_rank = (rank == world_size - 1) ? MPI_PROC_NULL : rank + 1;
     
-    double startTime2 = getCurrentTime();
-        
+    MPI_Sendrecv(local_texton.ptr<uchar>(0), texton_cols, MPI_UNSIGNED_CHAR, prev_rank, 0,
+                 local_texton_with_halos.ptr<uchar>(0), texton_cols, MPI_UNSIGNED_CHAR, prev_rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Sendrecv(local_texton.ptr<uchar>(local_texton_rows - 1), texton_cols, MPI_UNSIGNED_CHAR, next_rank, 0,
+                 local_texton_with_halos.ptr<uchar>(local_texton_rows + 1), texton_cols, MPI_UNSIGNED_CHAR, next_rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    // == 5. Parallel LTxXORp Calculation ==
+    double startTime2 = MPI_Wtime();
+    Mat local_result = local_texton.clone();
+    const int wgt[3][3] = {{8, 4, 2}, {16, 0, 1}, {32, 64, 128}};
     
-    k=0;
-    for (j=0;j<=text_offset[rank];j++){
-        int cols=t_m_c;
-        int x=((j+1)*cols)+1;
+    int start_row = (rank == 0) ? 1 : 0;
+    int end_row = (rank == world_size - 1) ? local_texton_rows - 1 : local_texton_rows;
 
-        for (i=0;i<t_m_c-2;i++){
-            x=x+i;
-            //printf("x=%d \n", x);
-            int txt_imgs[9] = {0};
-            const int a=cols+1,b=cols,c=cols-1,d=1,e=1,f=cols-1,g=cols,h=cols+1;
-            
-            if (txt_img[x] == txt_img[x-a])//6
-                txt_imgs[1] = 0;
-            else
-                txt_imgs[1] = 1;
+    for (int i = start_row; i < end_row; ++i) {
+        const uchar* p_prev = local_texton_with_halos.ptr<uchar>(i);
+        const uchar* p_curr = local_texton_with_halos.ptr<uchar>(i + 1);
+        const uchar* p_next = local_texton_with_halos.ptr<uchar>(i + 2);
+        uchar* p_dest = local_result.ptr<uchar>(i);
 
-            if (txt_img[x] == txt_img[x-b]) //5
-                txt_imgs[2] = 0;
-            else
-                txt_imgs[2] = 1;
-
-            if (txt_img[x] == txt_img[x-c]) //4
-                txt_imgs[3] = 0;
-            else
-                txt_imgs[3] = 1;
-
-            if (txt_img[x] == txt_img[x-d]) //1
-                txt_imgs[4] = 0;
-            else
-                txt_imgs[4] = 1;
-
-            if (txt_img[x] == txt_img[x+e])//1
-                txt_imgs[5] = 0;
-            else
-                txt_imgs[5] = 1;
-
-            if (txt_img[x] == txt_img[x+f]) //4
-                txt_imgs[6] = 0;
-            else
-                txt_imgs[6] = 1;
-
-            if (txt_img[x] == txt_img[x+g]) //5
-                txt_imgs[7] = 0;
-            else
-                txt_imgs[7] = 1;
-
-            if (txt_img[x] == txt_img[x+h]) //6
-                txt_imgs[8] = 0;
-            else
-                txt_imgs[8] = 1;
-            x=((j+1)*cols)+1;
+        for (int j = 1; j < texton_cols - 1; ++j) {
+            uchar center_val = p_curr[j];
             int xor_S = 0;
-            const int wgt[9] = {8, 4, 2,16, 0, 1,32, 64, 128};
-            xor_S =(txt_imgs[1] * wgt[0])+(txt_imgs[2] * wgt[1])+(txt_imgs[3] * wgt[2])+(txt_imgs[4] * wgt[3])+(txt_imgs[5] * wgt[5])+(txt_imgs[6] * wgt[6])+(txt_imgs[7] * wgt[7])+(txt_imgs[8] * wgt[8]);
-            Main_res[k]=xor_S;
-            //printf("%2d  ", Main_res[k]);
-            k++;
+            xor_S += (p_prev[j - 1] != center_val) * wgt[0][0];
+            xor_S += (p_prev[j]     != center_val) * wgt[0][1];
+            xor_S += (p_prev[j + 1] != center_val) * wgt[0][2];
+            xor_S += (p_curr[j - 1] != center_val) * wgt[1][0];
+            xor_S += (p_curr[j + 1] != center_val) * wgt[1][2];
+            xor_S += (p_next[j - 1] != center_val) * wgt[2][0];
+            xor_S += (p_next[j]     != center_val) * wgt[2][1];
+            xor_S += (p_next[j + 1] != center_val) * wgt[2][2];
+            p_dest[j] = saturate_cast<uchar>(xor_S);
         }
-        //printf("\n");
+    }
+    double endTime2 = MPI_Wtime();
+
+    // == 6. Gather All Results ==
+    vector<int> recv_counts(world_size);
+    vector<int> texton_displacements(world_size);
+    
+    int local_pixel_count = local_texton_rows * texton_cols;
+    MPI_Gather(&local_pixel_count, 1, MPI_INT, recv_counts.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
+    
+    Mat texton_full, final_result_full;
+    if (rank == 0) {
+        texton_displacements[0] = 0;
+        for (size_t i = 1; i < recv_counts.size(); ++i) {
+            texton_displacements[i] = texton_displacements[i - 1] + recv_counts[i - 1];
+        }
+        texton_full.create(texton_rows, texton_cols, CV_8UC1);
+        final_result_full.create(texton_rows, texton_cols, CV_8UC1);
     }
     
-    double endTime2 = getCurrentTime();
- 
-    temp_displacements = 0;
-    for (i=0;i<size;i++){
-        et_counts[i]=(t_m_c-2)*(text_offset[i] + 1 );
-        et_displacements[i]=temp_displacements;
-        temp_displacements += (t_m_c-2)*(1+text_offset[i]);     
-        //printf("vale  rank %d T-count %d T-diaplacemt %d Rank offset%d \n",rank ,et_counts[i],et_displacements[i],text_offset[i]);
-    }
+    MPI_Gatherv(local_texton.data, local_pixel_count, MPI_UNSIGNED_CHAR,
+                texton_full.data, recv_counts.data(), texton_displacements.data(),
+                MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+                
+    MPI_Gatherv(local_result.data, local_pixel_count, MPI_UNSIGNED_CHAR,
+                final_result_full.data, recv_counts.data(), texton_displacements.data(),
+                MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+    
+    // == 7. Print Timings and Results on Root ==
+    double totalTime1 = (endTime1 - startTime1) * 1000.0;
+    double totalTime2 = (endTime2 - startTime2) * 1000.0;
+    
+    double max_time1, max_time2;
+    MPI_Reduce(&totalTime1, &max_time1, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&totalTime2, &max_time2, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
-    MPI_Gatherv(Main_res, et_counts[rank], MPI_INT, Final, et_counts, et_displacements, MPI_INT, root_rank, MPI_COMM_WORLD);
-   
-    /*
-    if (rank == 0){
-        printf("\n___________________\n");
-        printf("\nTexton Weight image\n \n");
-        for (i = 0; i < t_m_r-2; i++) {
-            for (j = 0; j < t_m_c-2; j++) {
-                printf("%2d  ", Final[i*t_m_c+j]);
-            }
-            printf("\n");
-        }
-    }
-    */
+    if (rank == 0) {
+        cout << "\n--- Optimized MPI/OpenCV Execution ---" << endl;
+        //print_matrix(texton_full, "Intermediate Texton Image");
+        //print_matrix(final_result_full, "Final LTxXORp Result");
 
-    double totalTime1 = endTime1 - startTime1;
-    printf("Time taken by %d Rank Parallel to calculate Texton code: %.5f milliseconds\n",rank, totalTime1);
-    double totalTime2 = endTime2 - startTime2;
-    printf("Time taken by %d Rank Parallel to calculate LTxXORp code: %.5f milliseconds\n",rank, totalTime2);
-    printf("Elapsed time: %f mili seconds\n", totalTime1+totalTime2);
+        printf("\nMax time for Texton calculation:   %.4f milliseconds\n", max_time1);
+        printf("Max time for LTxXORp calculation: %.4f milliseconds\n", max_time2);
+        printf("Total max elapsed time:            %.4f milliseconds\n", max_time1 + max_time2);
+    }
 
     MPI_Finalize();
     return 0;
