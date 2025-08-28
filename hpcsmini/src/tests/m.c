@@ -36,7 +36,9 @@ int main(int argc, char* argv[])
         MPI_Scatter(NULL, 1, MPI_INT, &my_value, 1, MPI_INT, root_rank, MPI_COMM_WORLD);
     }
  
+    if(my_rank == root_rank)
     printf("Process %d received value = %d.\n", my_rank, my_value);
+    printf("Process %d received value = %d.\n", my_rank,size);
  
     MPI_Finalize();
  

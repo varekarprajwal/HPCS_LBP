@@ -64,6 +64,7 @@ int main(int argc, char* argv[]) {
     vector<Mat> hsvChannels;
     split(hsv_image, hsvChannels);
     Mat v_channel = hsvChannels[2]; // This is our source image, type CV_8UC1 (uchar)
+    //print_matrix(v_channel, "V channel Image");
 
     const int m_r = v_channel.rows / 2;
     const int m_c = v_channel.cols / 2;
