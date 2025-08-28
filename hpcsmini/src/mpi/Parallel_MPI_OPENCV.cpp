@@ -211,8 +211,8 @@ int main(int argc, char* argv[]) {
     double totalTime2 = (endTime2 - startTime2) * 1000.0;
     
     double max_time1, max_time2;
-    MPI_Reduce(&totalTime1, &max_time1, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&totalTime2, &max_time2, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&totalTime1, &max_time1, 1, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&totalTime2, &max_time2, 1, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
 
     // Add a barrier to synchronize all processes before printing.
     // This helps prevent output from different processes from interleaving.

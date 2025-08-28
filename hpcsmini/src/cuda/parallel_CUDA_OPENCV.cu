@@ -53,6 +53,7 @@ __global__ void calculate_TEXTON_CUDA(const unsigned char* v_channel, unsigned c
     int src_row = texton_row * 2;
     int src_col = texton_col * 2;
     int src_idx = src_row * cols + src_col;
+    /// start time
 
     unsigned char a = v_channel[src_idx];
     unsigned char b = v_channel[src_idx + 1];
@@ -61,6 +62,7 @@ __global__ void calculate_TEXTON_CUDA(const unsigned char* v_channel, unsigned c
 
     int texton_idx = texton_row * texton_cols + texton_col;
     texton_img[texton_idx] = casecheck(a, b, c, d);
+    //// end time
 }
 
 // Kernel to calculate Local Texton XOR Pattern (LTxXORp)
@@ -84,6 +86,7 @@ __global__ void calculate_LBP_CUDA(const unsigned char* texton_img, unsigned cha
     const unsigned int wgt[8] = {8, 4, 2, 16, 1, 32, 64, 128};
 
     unsigned int lbp_value = 0;
+    /// start time
     lbp_value += (texton_img[center_idx + original_offsets[0]] != center_val) * wgt[0];
     lbp_value += (texton_img[center_idx + original_offsets[1]] != center_val) * wgt[1];
     lbp_value += (texton_img[center_idx + original_offsets[2]] != center_val) * wgt[2];
@@ -95,6 +98,7 @@ __global__ void calculate_LBP_CUDA(const unsigned char* texton_img, unsigned cha
 
     int lbp_idx = center_row * cols + center_col;
     lbp_img[lbp_idx] = (unsigned char)lbp_value;
+    //// end time
 }
 
 int main(int argc, char *argv[]) {
@@ -136,21 +140,35 @@ int main(int argc, char *argv[]) {
     dim3 textonGrid((t_cols + threadsPerBlock.x - 1) / threadsPerBlock.x, (t_rows + threadsPerBlock.y - 1) / threadsPerBlock.y);
     dim3 lbpGrid(((t_cols - 2) + threadsPerBlock.x - 1) / threadsPerBlock.x, ((t_rows - 2) + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
-    // --- 5. Execute Kernels ---
-    cudaEvent_t start, stop;
-    checkCudaErrors(cudaEventCreate(&start));
-    checkCudaErrors(cudaEventCreate(&stop));
+    // --- 5. Execute Kernels and Measure Time ---
+    cudaEvent_t start_texton, stop_texton;
+    checkCudaErrors(cudaEventCreate(&start_texton));
+    checkCudaErrors(cudaEventCreate(&stop_texton));
 
-    checkCudaErrors(cudaEventRecord(start));
-
+    // Measure time for calculate_TEXTON_CUDA kernel
+    checkCudaErrors(cudaEventRecord(start_texton));
     calculate_TEXTON_CUDA<<<textonGrid, threadsPerBlock>>>(d_v_channel, d_texton_img, i_rows, i_cols);
+    checkCudaErrors(cudaEventRecord(stop_texton));
+    checkCudaErrors(cudaEventSynchronize(stop_texton));
+
+    float texton_milliseconds = 0;
+    checkCudaErrors(cudaEventElapsedTime(&texton_milliseconds, start_texton, stop_texton));
+    printf("Texton Kernel Elapsed time: %.5f milliseconds\n", texton_milliseconds);
+
+    // Now, measure time for the second kernel
+    cudaEvent_t start_lbp, stop_lbp;
+    checkCudaErrors(cudaEventCreate(&start_lbp));
+    checkCudaErrors(cudaEventCreate(&stop_lbp));
+
+    checkCudaErrors(cudaEventRecord(start_lbp));
     calculate_LBP_CUDA<<<lbpGrid, threadsPerBlock>>>(d_texton_img, d_lbp_img, t_rows, t_cols);
+    checkCudaErrors(cudaEventRecord(stop_lbp));
+    checkCudaErrors(cudaEventSynchronize(stop_lbp));
 
-    checkCudaErrors(cudaEventRecord(stop));
-    checkCudaErrors(cudaEventSynchronize(stop));
-
-    float milliseconds = 0;
-    checkCudaErrors(cudaEventElapsedTime(&milliseconds, start, stop));
+    float lbp_milliseconds = 0;
+    checkCudaErrors(cudaEventElapsedTime(&lbp_milliseconds, start_lbp, stop_lbp));
+    printf("LBP Kernel Elapsed time: %.5f milliseconds\n", lbp_milliseconds);
+    printf("Total Elapsed time: %.5f milliseconds\n", texton_milliseconds + lbp_milliseconds);
 
     // --- 6. Copy Results Back ---
     std::vector<unsigned char> h_texton_img(t_rows * t_cols);
@@ -163,14 +181,14 @@ int main(int argc, char *argv[]) {
     //std::cout << "\n___________________\n";
     //printImage(h_lbp_img, t_rows, t_cols, "Texton Weight image (LBP)");
 
-    printf("\nTotal GPU Kernel Elapsed time: %.5f milliseconds\n", milliseconds);
-
     // --- 7. Cleanup ---
     checkCudaErrors(cudaFree(d_v_channel));
     checkCudaErrors(cudaFree(d_texton_img));
     checkCudaErrors(cudaFree(d_lbp_img));
-    checkCudaErrors(cudaEventDestroy(start));
-    checkCudaErrors(cudaEventDestroy(stop));
+    checkCudaErrors(cudaEventDestroy(start_texton));
+    checkCudaErrors(cudaEventDestroy(stop_texton));
+    checkCudaErrors(cudaEventDestroy(start_lbp));
+    checkCudaErrors(cudaEventDestroy(stop_lbp));
 
     return 0;
 }
