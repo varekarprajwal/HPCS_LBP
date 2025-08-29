@@ -42,7 +42,6 @@ Release/
 *.vcxproj*
 CMakeFiles/
 CMakeCache.txt
-Makefile
 cmake_install.cmake
 
 # MacOS system files
