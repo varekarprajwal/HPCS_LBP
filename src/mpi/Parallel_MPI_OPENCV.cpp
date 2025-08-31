@@ -219,7 +219,7 @@ int main(int argc, char* argv[]) {
     MPI_Barrier(MPI_COMM_WORLD);
 
     if (rank == 0) {
-        std::cout << "\n--- Optimized MPI/OpenCV Execution ---" << std::endl;
+        //std::cout << "\n--- Optimized MPI/OpenCV Execution ---" << std::endl;
         // Uncomment to see the intermediate and final images.
         //print_matrix(texton_full, "Intermediate Texton Image");
         //print_matrix(final_result_full, "Final LTxXORp Result");

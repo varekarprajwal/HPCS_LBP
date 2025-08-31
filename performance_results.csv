@@ -1,244 +1,232 @@
 Image,Sequential(ms),MPI(ms),CUDA(ms),MPI Speedup,MPI Efficiency(%),CUDA Speedup,CUDA Efficiency(%)
+***********************************************************************
 ./build/serial Data/test/test_16384x16384.png
+Elapsed time for texton : 453.7633 milliseconds
+Elapsed time for LTxXORp: 819.9570 milliseconds
+Total elapsed time      : 1273.7203 milliseconds
+................................................
+mpirun -np 2 ./build/mpi_parallel Data/test/test_16384x16384.png
 
-____________________________
-
-Elapsed time for texton : 89.6656 milliseconds
-Elapsed time for LTxXORp: 13.7914 milliseconds
-Total elapsed time      : 103.4570 milliseconds
-mpiicpc -O3  -o build/mpi_parallel src/mpi/Parallel_MPI_OPENCV.cpp `pkg-config --cflags --libs opencv4`
-mpirun -np 4 ./build/mpi_parallel Data/test/test_16384x16384.png
-
---- Optimized MPI/OpenCV Execution ---
-
-Max time for Texton calculation   :31.4755 milliseconds
-Max time for LTxXORp calculation  :65.1958 milliseconds
-Total max elapsed time            :96.6712 milliseconds
+Max time for Texton calculation   :202.1749 milliseconds
+Max time for LTxXORp calculation  :388.9316 milliseconds
+Total max elapsed time            :591.1066 milliseconds
+................................................
+./build/omp_parallel Data/test/test_16384x16384.png
+Elapsed time for texton : 142.8392 milliseconds
+Elapsed time for LTxXORp: 221.8648 milliseconds
+Total elapsed time      : 364.7040 milliseconds
+................................................
 ./build/cuda_parallel Data/test/test_16384x16384.png
-Texton Kernel Elapsed time: 4.51686 milliseconds
-LBP Kernel Elapsed time: 7.06752 milliseconds
-Total Elapsed time: 11.58438 milliseconds
-./build/cuda_shared Data/test/test_16384x16384.png
-Texton Kernel Elapsed time: 4.50867 milliseconds
+Texton Kernel Elapsed time: 4.50560 milliseconds
 LBP Kernel Elapsed time: 7.06150 milliseconds
-Total Elapsed time: 11.57018 milliseconds
+Total Elapsed time: 11.56710 milliseconds
+***********************************************************************
 ./build/serial Data/test/test_512x512.png
+Elapsed time for texton : 0.7726 milliseconds
+Elapsed time for LTxXORp: 0.8027 milliseconds
+Total elapsed time      : 1.5753 milliseconds
+................................................
+mpirun -np 2 ./build/mpi_parallel Data/test/test_512x512.png
 
-____________________________
-
-Elapsed time for texton : 0.1516 milliseconds
-Elapsed time for LTxXORp: 0.0165 milliseconds
-Total elapsed time      : 0.1682 milliseconds
-mpirun -np 4 ./build/mpi_parallel Data/test/test_512x512.png
-
---- Optimized MPI/OpenCV Execution ---
-
-Max time for Texton calculation   :0.0364 milliseconds
-Max time for LTxXORp calculation  :0.0588 milliseconds
-Total max elapsed time            :0.0952 milliseconds
+Max time for Texton calculation   :0.1985 milliseconds
+Max time for LTxXORp calculation  :0.3712 milliseconds
+Total max elapsed time            :0.5696 milliseconds
+................................................
+./build/omp_parallel Data/test/test_512x512.png
+Elapsed time for texton : 6.4583 milliseconds
+Elapsed time for LTxXORp: 6.9990 milliseconds
+Total elapsed time      : 13.4573 milliseconds
+................................................
 ./build/cuda_parallel Data/test/test_512x512.png
-Texton Kernel Elapsed time: 0.06016 milliseconds
-LBP Kernel Elapsed time: 0.01434 milliseconds
-Total Elapsed time: 0.07450 milliseconds
-./build/cuda_shared Data/test/test_512x512.png
-Texton Kernel Elapsed time: 0.05728 milliseconds
+Texton Kernel Elapsed time: 0.06518 milliseconds
 LBP Kernel Elapsed time: 0.01536 milliseconds
-Total Elapsed time: 0.07264 milliseconds
+Total Elapsed time: 0.08054 milliseconds
+***********************************************************************
 ./build/serial Data/test/test_2048x2048.png
+Elapsed time for texton : 7.6867 milliseconds
+Elapsed time for LTxXORp: 12.3969 milliseconds
+Total elapsed time      : 20.0836 milliseconds
+................................................
+mpirun -np 2 ./build/mpi_parallel Data/test/test_2048x2048.png
 
-____________________________
-
-Elapsed time for texton : 1.5747 milliseconds
-Elapsed time for LTxXORp: 0.1899 milliseconds
-Total elapsed time      : 1.7646 milliseconds
-mpirun -np 4 ./build/mpi_parallel Data/test/test_2048x2048.png
-
---- Optimized MPI/OpenCV Execution ---
-
-Max time for Texton calculation   :0.5481 milliseconds
-Max time for LTxXORp calculation  :1.0699 milliseconds
-Total max elapsed time            :1.6181 milliseconds
+Max time for Texton calculation   :3.3171 milliseconds
+Max time for LTxXORp calculation  :6.1772 milliseconds
+Total max elapsed time            :9.4943 milliseconds
+................................................
+./build/omp_parallel Data/test/test_2048x2048.png
+Elapsed time for texton : 2.0216 milliseconds
+Elapsed time for LTxXORp: 3.0935 milliseconds
+Total elapsed time      : 5.1151 milliseconds
+................................................
 ./build/cuda_parallel Data/test/test_2048x2048.png
 Texton Kernel Elapsed time: 0.09011 milliseconds
-LBP Kernel Elapsed time: 0.11469 milliseconds
-Total Elapsed time: 0.20480 milliseconds
-./build/cuda_shared Data/test/test_2048x2048.png
-Texton Kernel Elapsed time: 0.08806 milliseconds
-LBP Kernel Elapsed time: 0.11462 milliseconds
-Total Elapsed time: 0.20269 milliseconds
+LBP Kernel Elapsed time: 0.11264 milliseconds
+Total Elapsed time: 0.20275 milliseconds
+***********************************************************************
 ./build/serial Data/test/test_32x32.png
+Elapsed time for texton : 0.0046 milliseconds
+Elapsed time for LTxXORp: 0.0026 milliseconds
+Total elapsed time      : 0.0072 milliseconds
+................................................
+mpirun -np 2 ./build/mpi_parallel Data/test/test_32x32.png
 
-____________________________
-
-Elapsed time for texton : 0.0023 milliseconds
-Elapsed time for LTxXORp: 0.0005 milliseconds
-Total elapsed time      : 0.0028 milliseconds
-mpirun -np 4 ./build/mpi_parallel Data/test/test_32x32.png
-
---- Optimized MPI/OpenCV Execution ---
-
-Max time for Texton calculation   :0.0003 milliseconds
-Max time for LTxXORp calculation  :0.0002 milliseconds
-Total max elapsed time            :0.0005 milliseconds
+Max time for Texton calculation   :0.0016 milliseconds
+Max time for LTxXORp calculation  :0.0035 milliseconds
+Total max elapsed time            :0.0051 milliseconds
+................................................
+./build/omp_parallel Data/test/test_32x32.png
+Elapsed time for texton : 0.3141 milliseconds
+Elapsed time for LTxXORp: 0.0041 milliseconds
+Total elapsed time      : 0.3182 milliseconds
+................................................
 ./build/cuda_parallel Data/test/test_32x32.png
-Texton Kernel Elapsed time: 0.08182 milliseconds
-LBP Kernel Elapsed time: 0.01091 milliseconds
-Total Elapsed time: 0.09274 milliseconds
-./build/cuda_shared Data/test/test_32x32.png
-Texton Kernel Elapsed time: 0.08499 milliseconds
-LBP Kernel Elapsed time: 0.01002 milliseconds
-Total Elapsed time: 0.09501 milliseconds
-./build/serial Data/test/test_128x128.png
-
-____________________________
-
-Elapsed time for texton : 0.0132 milliseconds
-Elapsed time for LTxXORp: 0.0023 milliseconds
-Total elapsed time      : 0.0155 milliseconds
-mpirun -np 4 ./build/mpi_parallel Data/test/test_128x128.png
-
---- Optimized MPI/OpenCV Execution ---
-
-Max time for Texton calculation   :0.0041 milliseconds
-Max time for LTxXORp calculation  :0.0034 milliseconds
-Total max elapsed time            :0.0075 milliseconds
-./build/cuda_parallel Data/test/test_128x128.png
-Texton Kernel Elapsed time: 0.07338 milliseconds
-LBP Kernel Elapsed time: 0.01078 milliseconds
-Total Elapsed time: 0.08416 milliseconds
-./build/cuda_shared Data/test/test_128x128.png
-Texton Kernel Elapsed time: 0.07258 milliseconds
-LBP Kernel Elapsed time: 0.01126 milliseconds
-Total Elapsed time: 0.08384 milliseconds
-./build/serial Data/test/test_64x64.png
-
-____________________________
-
-Elapsed time for texton : 0.0045 milliseconds
-Elapsed time for LTxXORp: 0.0014 milliseconds
-Total elapsed time      : 0.0059 milliseconds
-mpirun -np 4 ./build/mpi_parallel Data/test/test_64x64.png
-
---- Optimized MPI/OpenCV Execution ---
-
-Max time for Texton calculation   :0.0011 milliseconds
-Max time for LTxXORp calculation  :0.0008 milliseconds
-Total max elapsed time            :0.0019 milliseconds
-./build/cuda_parallel Data/test/test_64x64.png
-Texton Kernel Elapsed time: 0.07523 milliseconds
+Texton Kernel Elapsed time: 0.07792 milliseconds
 LBP Kernel Elapsed time: 0.01024 milliseconds
-Total Elapsed time: 0.08547 milliseconds
-./build/cuda_shared Data/test/test_64x64.png
-Texton Kernel Elapsed time: 0.07142 milliseconds
-LBP Kernel Elapsed time: 0.01126 milliseconds
-Total Elapsed time: 0.08269 milliseconds
+Total Elapsed time: 0.08816 milliseconds
+***********************************************************************
+./build/serial Data/test/test_128x128.png
+Elapsed time for texton : 0.0374 milliseconds
+Elapsed time for LTxXORp: 0.0836 milliseconds
+Total elapsed time      : 0.1210 milliseconds
+................................................
+mpirun -np 2 ./build/mpi_parallel Data/test/test_128x128.png
+
+Max time for Texton calculation   :0.0165 milliseconds
+Max time for LTxXORp calculation  :0.0243 milliseconds
+Total max elapsed time            :0.0408 milliseconds
+................................................
+./build/omp_parallel Data/test/test_128x128.png
+Elapsed time for texton : 0.3199 milliseconds
+Elapsed time for LTxXORp: 0.0127 milliseconds
+Total elapsed time      : 0.3326 milliseconds
+................................................
+./build/cuda_parallel Data/test/test_128x128.png
+Texton Kernel Elapsed time: 0.14912 milliseconds
+LBP Kernel Elapsed time: 0.01024 milliseconds
+Total Elapsed time: 0.15936 milliseconds
+***********************************************************************
+./build/serial Data/test/test_64x64.png
+Elapsed time for texton : 0.0107 milliseconds
+Elapsed time for LTxXORp: 0.0113 milliseconds
+Total elapsed time      : 0.0220 milliseconds
+................................................
+mpirun -np 2 ./build/mpi_parallel Data/test/test_64x64.png
+
+Max time for Texton calculation   :0.0044 milliseconds
+Max time for LTxXORp calculation  :0.0078 milliseconds
+Total max elapsed time            :0.0122 milliseconds
+................................................
+./build/omp_parallel Data/test/test_64x64.png
+Elapsed time for texton : 2.4749 milliseconds
+Elapsed time for LTxXORp: 3.9823 milliseconds
+Total elapsed time      : 6.4571 milliseconds
+................................................
+./build/cuda_parallel Data/test/test_64x64.png
+Texton Kernel Elapsed time: 0.07715 milliseconds
+LBP Kernel Elapsed time: 0.00922 milliseconds
+Total Elapsed time: 0.08637 milliseconds
+***********************************************************************
 ./build/serial Data/test/test_4096x4096.png
+Elapsed time for texton : 28.5188 milliseconds
+Elapsed time for LTxXORp: 51.1807 milliseconds
+Total elapsed time      : 79.6995 milliseconds
+................................................
+mpirun -np 2 ./build/mpi_parallel Data/test/test_4096x4096.png
 
-____________________________
-
-Elapsed time for texton : 5.5734 milliseconds
-Elapsed time for LTxXORp: 0.7541 milliseconds
-Total elapsed time      : 6.3274 milliseconds
-mpirun -np 4 ./build/mpi_parallel Data/test/test_4096x4096.png
-
---- Optimized MPI/OpenCV Execution ---
-
-Max time for Texton calculation   :2.1231 milliseconds
-Max time for LTxXORp calculation  :4.2896 milliseconds
-Total max elapsed time            :6.4126 milliseconds
+Max time for Texton calculation   :12.1392 milliseconds
+Max time for LTxXORp calculation  :23.9018 milliseconds
+Total max elapsed time            :36.0410 milliseconds
+................................................
+./build/omp_parallel Data/test/test_4096x4096.png
+Elapsed time for texton : 7.7969 milliseconds
+Elapsed time for LTxXORp: 12.0934 milliseconds
+Total elapsed time      : 19.8902 milliseconds
+................................................
 ./build/cuda_parallel Data/test/test_4096x4096.png
-Texton Kernel Elapsed time: 0.31642 milliseconds
-LBP Kernel Elapsed time: 0.40614 milliseconds
-Total Elapsed time: 0.72256 milliseconds
-./build/cuda_shared Data/test/test_4096x4096.png
-Texton Kernel Elapsed time: 0.30618 milliseconds
-LBP Kernel Elapsed time: 0.40538 milliseconds
-Total Elapsed time: 0.71155 milliseconds
+Texton Kernel Elapsed time: 0.29184 milliseconds
+LBP Kernel Elapsed time: 0.37990 milliseconds
+Total Elapsed time: 0.67174 milliseconds
+***********************************************************************
 ./build/serial Data/test/test_16x16.png
+Elapsed time for texton : 0.0027 milliseconds
+Elapsed time for LTxXORp: 0.0008 milliseconds
+Total elapsed time      : 0.0035 milliseconds
+................................................
+mpirun -np 2 ./build/mpi_parallel Data/test/test_16x16.png
 
-____________________________
-
-Elapsed time for texton : 0.0020 milliseconds
-Elapsed time for LTxXORp: 0.0003 milliseconds
-Total elapsed time      : 0.0023 milliseconds
-mpirun -np 4 ./build/mpi_parallel Data/test/test_16x16.png
-
---- Optimized MPI/OpenCV Execution ---
-
-Max time for Texton calculation   :0.0002 milliseconds
-Max time for LTxXORp calculation  :0.0001 milliseconds
-Total max elapsed time            :0.0003 milliseconds
+Max time for Texton calculation   :0.0008 milliseconds
+Max time for LTxXORp calculation  :0.0025 milliseconds
+Total max elapsed time            :0.0033 milliseconds
+................................................
+./build/omp_parallel Data/test/test_16x16.png
+Elapsed time for texton : 0.2400 milliseconds
+Elapsed time for LTxXORp: 0.0026 milliseconds
+Total elapsed time      : 0.2426 milliseconds
+................................................
 ./build/cuda_parallel Data/test/test_16x16.png
-Texton Kernel Elapsed time: 0.07696 milliseconds
-LBP Kernel Elapsed time: 0.01008 milliseconds
-Total Elapsed time: 0.08704 milliseconds
-./build/cuda_shared Data/test/test_16x16.png
-Texton Kernel Elapsed time: 0.07366 milliseconds
-LBP Kernel Elapsed time: 0.00986 milliseconds
-Total Elapsed time: 0.08352 milliseconds
+Texton Kernel Elapsed time: 0.07722 milliseconds
+LBP Kernel Elapsed time: 0.01005 milliseconds
+Total Elapsed time: 0.08726 milliseconds
+***********************************************************************
 ./build/serial Data/test/test_8192x8192.png
+Elapsed time for texton : 112.5317 milliseconds
+Elapsed time for LTxXORp: 203.7352 milliseconds
+Total elapsed time      : 316.2669 milliseconds
+................................................
+mpirun -np 2 ./build/mpi_parallel Data/test/test_8192x8192.png
 
-____________________________
-
-Elapsed time for texton : 22.6727 milliseconds
-Elapsed time for LTxXORp: 3.6584 milliseconds
-Total elapsed time      : 26.3311 milliseconds
-mpirun -np 4 ./build/mpi_parallel Data/test/test_8192x8192.png
-
---- Optimized MPI/OpenCV Execution ---
-
-Max time for Texton calculation   :7.5498 milliseconds
-Max time for LTxXORp calculation  :15.8298 milliseconds
-Total max elapsed time            :23.3796 milliseconds
+Max time for Texton calculation   :49.9603 milliseconds
+Max time for LTxXORp calculation  :98.2775 milliseconds
+Total max elapsed time            :148.2378 milliseconds
+................................................
+./build/omp_parallel Data/test/test_8192x8192.png
+Elapsed time for texton : 30.5705 milliseconds
+Elapsed time for LTxXORp: 50.3473 milliseconds
+Total elapsed time      : 80.9178 milliseconds
+................................................
 ./build/cuda_parallel Data/test/test_8192x8192.png
-Texton Kernel Elapsed time: 1.15507 milliseconds
-LBP Kernel Elapsed time: 1.76742 milliseconds
-Total Elapsed time: 2.92250 milliseconds
-./build/cuda_shared Data/test/test_8192x8192.png
-Texton Kernel Elapsed time: 1.15610 milliseconds
-LBP Kernel Elapsed time: 1.76589 milliseconds
-Total Elapsed time: 2.92198 milliseconds
+Texton Kernel Elapsed time: 1.09466 milliseconds
+LBP Kernel Elapsed time: 1.62915 milliseconds
+Total Elapsed time: 2.72381 milliseconds
+***********************************************************************
 ./build/serial Data/test/test_256x256.png
+Elapsed time for texton : 0.1725 milliseconds
+Elapsed time for LTxXORp: 0.1884 milliseconds
+Total elapsed time      : 0.3608 milliseconds
+................................................
+mpirun -np 2 ./build/mpi_parallel Data/test/test_256x256.png
 
-____________________________
-
-Elapsed time for texton : 0.0367 milliseconds
-Elapsed time for LTxXORp: 0.0057 milliseconds
-Total elapsed time      : 0.0424 milliseconds
-mpirun -np 4 ./build/mpi_parallel Data/test/test_256x256.png
-
---- Optimized MPI/OpenCV Execution ---
-
-Max time for Texton calculation   :0.0141 milliseconds
-Max time for LTxXORp calculation  :0.0145 milliseconds
-Total max elapsed time            :0.0285 milliseconds
+Max time for Texton calculation   :0.0559 milliseconds
+Max time for LTxXORp calculation  :0.0930 milliseconds
+Total max elapsed time            :0.1489 milliseconds
+................................................
+./build/omp_parallel Data/test/test_256x256.png
+Elapsed time for texton : 0.2713 milliseconds
+Elapsed time for LTxXORp: 0.0473 milliseconds
+Total elapsed time      : 0.3186 milliseconds
+................................................
 ./build/cuda_parallel Data/test/test_256x256.png
-Texton Kernel Elapsed time: 0.08179 milliseconds
-LBP Kernel Elapsed time: 0.01299 milliseconds
-Total Elapsed time: 0.09478 milliseconds
-./build/cuda_shared Data/test/test_256x256.png
-Texton Kernel Elapsed time: 0.08374 milliseconds
-LBP Kernel Elapsed time: 0.01434 milliseconds
-Total Elapsed time: 0.09808 milliseconds
+Texton Kernel Elapsed time: 0.07715 milliseconds
+LBP Kernel Elapsed time: 0.01174 milliseconds
+Total Elapsed time: 0.08890 milliseconds
+***********************************************************************
 ./build/serial Data/test/test_1024x1024.png
+Elapsed time for texton : 2.0461 milliseconds
+Elapsed time for LTxXORp: 3.1645 milliseconds
+Total elapsed time      : 5.2106 milliseconds
+................................................
+mpirun -np 2 ./build/mpi_parallel Data/test/test_1024x1024.png
 
-____________________________
-
-Elapsed time for texton : 0.3657 milliseconds
-Elapsed time for LTxXORp: 0.0520 milliseconds
-Total elapsed time      : 0.4177 milliseconds
-mpirun -np 4 ./build/mpi_parallel Data/test/test_1024x1024.png
-
---- Optimized MPI/OpenCV Execution ---
-
-Max time for Texton calculation   :0.1303 milliseconds
-Max time for LTxXORp calculation  :0.2653 milliseconds
-Total max elapsed time            :0.3956 milliseconds
+Max time for Texton calculation   :0.8303 milliseconds
+Max time for LTxXORp calculation  :1.5378 milliseconds
+Total max elapsed time            :2.3680 milliseconds
+................................................
+./build/omp_parallel Data/test/test_1024x1024.png
+Elapsed time for texton : 0.7055 milliseconds
+Elapsed time for LTxXORp: 0.7497 milliseconds
+Total elapsed time      : 1.4552 milliseconds
+................................................
 ./build/cuda_parallel Data/test/test_1024x1024.png
-Texton Kernel Elapsed time: 0.03994 milliseconds
-LBP Kernel Elapsed time: 0.03789 milliseconds
-Total Elapsed time: 0.07782 milliseconds
-./build/cuda_shared Data/test/test_1024x1024.png
-Texton Kernel Elapsed time: 0.03789 milliseconds
-LBP Kernel Elapsed time: 0.03686 milliseconds
-Total Elapsed time: 0.07475 milliseconds
+Texton Kernel Elapsed time: 0.03686 milliseconds
+LBP Kernel Elapsed time: 0.03478 milliseconds
+Total Elapsed time: 0.07165 milliseconds

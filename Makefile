@@ -19,7 +19,7 @@ OPENCV = `pkg-config --cflags --libs opencv4`
 # Directories
 # ============================
 SRC_DIR      = src
-IMAGE_DIR    = Data/images
+IMAGE_DIR    = Data/test
 
 # ============================
 # VTune Profiling
@@ -32,6 +32,7 @@ VTUNE_RESULT_DIR = vtune_results
 # Source files
 # ============================
 MPI_SRC           = $(SRC_DIR)/mpi/Parallel_MPI_OPENCV.cpp
+OMP_SRC           = $(SRC_DIR)/mpi/Parallel_OpenMP_OPENCV.cpp
 MPI_OPT_SRC       = $(SRC_DIR)/hybrid/MPI_OpenMP_OPENCV.cpp
 SEQ_SRC           = $(SRC_DIR)/sequential/Sequential_OPENCV.cpp
 CUDA_SRC          = $(SRC_DIR)/cuda/parallel_CUDA_OPENCV.cu
@@ -43,6 +44,7 @@ TEXTON_HYBRID_SRC = $(SRC_DIR)/hybrid/MPI_OpenMP_OPENCV.cpp  # Ensure this is co
 # Executables
 # ============================
 MPI_EXEC           = build/mpi_parallel
+OMP_EXEC           = build/omp_parallel
 MPI_OPT_EXEC       = build/parallel_optimized
 SEQ_EXEC           = build/serial
 CUDA_EXEC          = build/cuda_parallel
@@ -54,7 +56,7 @@ TEXTON_HYBRID_EXEC = build/texton_hybrid
 # Configurable variables
 # ============================
 CORE  ?= 8
-IMAGE ?= $(IMAGE_DIR)/real1.jpeg
+IMAGE ?= $(IMAGE_DIR)/test_16384x16384.png
 
 # ============================
 # Default target
@@ -74,25 +76,28 @@ prepare:
 # Build targets
 # ============================
 $(MPI_EXEC): $(MPI_SRC)
-	$(MPICC) -O3  -o $(MPI_EXEC) $(MPI_SRC) $(OPENCV)
+	$(MPICC)  -o $(MPI_EXEC) $(MPI_SRC) $(OPENCV)
+
+$(OMP_EXEC): $(MPI_SRC)
+	$(GCC) -fopenmp -o $(OMP_EXEC) $(OMP_SRC) $(OPENCV)
 
 $(MPI_OPT_EXEC): $(MPI_OPT_SRC)
-	$(MPICC) -O3 -fopenmp -o $(MPI_OPT_EXEC) $(MPI_OPT_SRC) $(OPENCV)
+	$(MPICC)  -fopenmp -o $(MPI_OPT_EXEC) $(MPI_OPT_SRC) $(OPENCV)
 
 $(SEQ_EXEC): $(SEQ_SRC)
-	$(GCC) -O3 -o $(SEQ_EXEC) $(SEQ_SRC) $(OPENCV)
+	$(GCC)  -o $(SEQ_EXEC) $(SEQ_SRC) $(OPENCV)
 
 $(CUDA_EXEC): $(CUDA_SRC)
-	$(NVCC) -O3 -arch=sm_60 -o $(CUDA_EXEC) $(CUDA_SRC) $(OPENCV)
+	$(NVCC)  -arch=sm_60 -o $(CUDA_EXEC) $(CUDA_SRC) $(OPENCV)
 
 $(CUDA_SM_EXEC): $(SM_CUDA_SRC)
-	$(NVCC) -O3 -arch=sm_60 -o $(CUDA_SM_EXEC) $(SM_CUDA_SRC) $(OPENCV)
+	$(NVCC)  -arch=sm_60 -o $(CUDA_SM_EXEC) $(SM_CUDA_SRC) $(OPENCV)
 
 $(HYBRID_EXEC): $(HYBRID_SRC)
-	$(MPICC) -O3 -fopenmp -o $(HYBRID_EXEC) $(HYBRID_SRC) $(OPENCV)
+	$(MPICC)  -fopenmp -o $(HYBRID_EXEC) $(HYBRID_SRC) $(OPENCV)
 
 $(TEXTON_HYBRID_EXEC): $(TEXTON_HYBRID_SRC)
-	$(MPICXX) -O3 -std=c++17 -Wall -fopenmp -o $(TEXTON_HYBRID_EXEC) $(TEXTON_HYBRID_SRC) $(OPENCV)
+	$(MPICXX)  -std=c++17 -Wall -fopenmp -o $(TEXTON_HYBRID_EXEC) $(TEXTON_HYBRID_SRC) $(OPENCV)
 
 # ============================
 # Run targets
@@ -105,6 +110,9 @@ run-mpi-optimized: $(MPI_OPT_EXEC)
 
 run-serial: $(SEQ_EXEC)
 	./$(SEQ_EXEC) $(IMAGE)
+
+run-omp: $(OMP_EXEC)
+	./$(OMP_EXEC) $(IMAGE)
 
 run-cuda: $(CUDA_EXEC)
 	./$(CUDA_EXEC) $(IMAGE)

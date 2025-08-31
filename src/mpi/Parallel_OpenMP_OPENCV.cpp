@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <ctime>
 #include <vector>
+#include <omp.h> // Include the OpenMP header
 #include <opencv4/opencv2/opencv.hpp>
 
 using namespace cv;
@@ -74,6 +75,10 @@ int main(int argc, char* argv[]) {
 
     // --- Texton Calculation ---
     double startTime1 = getCurrentTime();
+    
+    // Parallelize the outer loop. OpenMP will automatically handle
+    // distributing the rows (iterations of 'i') among the available threads.
+    #pragma omp parallel for
     for (int i = 0; i < m_r; ++i) {
         // Get pointers to the two source rows to avoid repeated .at() calls
         const uchar* p_src1 = v_channel.ptr<uchar>(i * 2);
@@ -97,8 +102,10 @@ int main(int argc, char* argv[]) {
     Mat main_res = txt_img.clone();
 
     double startTime2 = getCurrentTime();
-    // Loop only over the INTERIOR pixels, from 1 to rows-2 and 1 to cols-2.
-    // This avoids the expensive 'if' check for borders inside the loop.
+    
+    // Parallelize the outer loop for the LTxXORp calculation.
+    // Each thread will process a separate chunk of rows from the texton image.
+    #pragma omp parallel for
     for (int i = 1; i < m_r - 1; ++i) {
         // Get pointers to the previous, current, and next rows of the texton image
         const uchar* p_prev = txt_img.ptr<uchar>(i - 1);
