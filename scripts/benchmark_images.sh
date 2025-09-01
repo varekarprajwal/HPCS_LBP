@@ -5,7 +5,6 @@ RESULT_FILE=performance_results.csv
 
 # Header for CSV
 echo "Image,Sequential(ms),MPI(ms),CUDA(ms),MPI Speedup,MPI Efficiency(%),CUDA Speedup,CUDA Efficiency(%)" > $RESULT_FILE
-
 # Loop over all images
 for img in $(find $IMAGE_DIR -type f -iname "*.jpg" -o -iname "*.png" -o -iname "*.jpeg"); do
     echo "Processing $img ..."
@@ -17,8 +16,8 @@ for img in $(find $IMAGE_DIR -type f -iname "*.jpg" -o -iname "*.png" -o -iname 
     make run-omp IMAGE=$img >> $RESULT_FILE
     echo "................................................">>$RESULT_FILE
     make run-cuda IMAGE=$img >> $RESULT_FILE
-    #echo "................................................">>$RESULT_FILE
-    #make run-cuda-shared IMAGE=$img >> $RESULT_FILE
+    echo "................................................">>$RESULT_FILE
+    make run-cuda-shared IMAGE=$img >> $RESULT_FILE
    
 done
 

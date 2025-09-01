@@ -31,11 +31,11 @@ VTUNE_RESULT_DIR = vtune_results
 # ============================
 # Source files
 # ============================
-MPI_SRC           = $(SRC_DIR)/mpi/Parallel_MPI_OPENCV.cpp
+MPI_SRC           = src/tests/Parallel_MPI_OPENCV.cpp#$(SRC_DIR)/mpi/Parallel_MPI_OPENCV.cpp
 OMP_SRC           = $(SRC_DIR)/mpi/Parallel_OpenMP_OPENCV.cpp
 MPI_OPT_SRC       = $(SRC_DIR)/hybrid/MPI_OpenMP_OPENCV.cpp
-SEQ_SRC           = $(SRC_DIR)/sequential/Sequential_OPENCV.cpp
-CUDA_SRC          = $(SRC_DIR)/cuda/parallel_CUDA_OPENCV.cu
+SEQ_SRC           = src/tests/Parallel_MPI_OPENCV.cpp#$(SRC_DIR)/sequential/Sequential_OPENCV.cpp
+CUDA_SRC          = $(SRC_DIR)/cuda/parallel_CUDA_OPENCV.cu #src/tests/parallel_CUDA_OPENCV.cu
 SM_CUDA_SRC       = $(SRC_DIR)/cuda/P_SM.cu
 HYBRID_SRC        = $(SRC_DIR)/hybrid/Hybrid_MPI_OpenMP_CUDA.cpp
 TEXTON_HYBRID_SRC = $(SRC_DIR)/hybrid/MPI_OpenMP_OPENCV.cpp  # Ensure this is correct
